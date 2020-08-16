@@ -69,7 +69,7 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
 
 
 // 定期実行
-chrome.alarms.create('UPDATE_PURCHASE_ORDER', { periodInMinutes: 0.5 });
+chrome.alarms.create('UPDATE_PURCHASE_ORDER', { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'UPDATE_PURCHASE_ORDER') {
     console.log('ダウンロードを開始します');
