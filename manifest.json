@@ -1,0 +1,56 @@
+{
+  "manifest_version": 2,
+  "name": "Sales-Gang",
+  "short_name": "Sales-Gang",
+  "description": "Chrome拡張の購入情報をdiscordに通知します",
+  "version": "1.0.0",
+  "icons": {
+    "16": "./16.png",
+    "48": "./48.png",
+    "128": "./128.png"
+  },
+  "browser_action": {
+    "default_popup": "index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://pay.google.com/gp/w/u/0/home/**",
+        "https://payments.google.com/payments/apis-secure/doc/u/0/**",
+        "https://payments.google.com/payments/**",
+        "https://zipcloud.ibsnet.co.jp/api/**"
+      ],
+      "js": [
+        "./content-script.js",
+        "./popup.js"
+      ],
+      "css": [
+        "./content-script.css",
+        "./popup.css"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "background": {
+    "scripts": [
+      "./background.js"
+    ]
+  },
+  "permissions": [
+    "tabs",
+    "notifications",
+    "alarms",
+    "storage",
+    "webRequest",
+    "webRequestBlocking",
+    "https://pay.google.com/gp/w/u/0/home/**",
+    "https://payments.google.com/payments/apis-secure/doc/u/0/**",
+    "https://zipcloud.ibsnet.co.jp/api/**"
+  ],
+  "web_accessible_resources": [
+    "*.png",
+    "*.jpg",
+    "*.gif"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}
