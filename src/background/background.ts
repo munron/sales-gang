@@ -79,15 +79,22 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       await init();
     } else {
       const purchaseOrders = await downloadPurchaseOrders();
+      // console.log(`purchaseOrders length is ${purchaseOrders?.length}`);
       if (purchaseOrders) {
         const curLength = purchaseOrders.length;
-        if (preLength == curLength) console.log("変化無し")
+        console.log(`preLength length is ${preLength}`);
+        console.log(`curLength length is ${curLength}`);
+        if (preLength == curLength) {
+          console.log("変化無し")
+          return;
+        }
+        await setChromeStorage({ OrderAmountLength: curLength })
         for (let index = 0; index < (curLength - preLength); index += 1) {
           const log = await generateLog(purchaseOrders, index);
           await sendNotificationToDiscord("SalesGang", log);
           sendNotificationToBroweser(log);
         }
-        await setChromeStorage({ OrderAmountLength: curLength })
+
       }
     }
   }
