@@ -1,7 +1,7 @@
 <template>
   <div id="popup">
     <chrome-ex-img class="chrome-ex-img" :imagePath="'128.png'" />
-    <p>Ver 1.0.0</p>
+    <p>Ver 1.1.0</p>
     <div class="input-form">
       <div class="title">
         <p>🔗 購入履歴ダウンロードURL</p>
