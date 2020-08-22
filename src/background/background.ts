@@ -47,17 +47,18 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 
-// chrome.runtime.onMessage.addListener(
-//   async function (message, sender, callback) {
-//     // console.log("debug log");
-//     if (message.type == 'DOWNLOAD_PURCHASE_ORDER') {
-//       const purchaseOrders = await downloadPurchaseOrders();
-//       const log = await generateLog(purchaseOrders, 0);
-//       sendNotificationToDiscord("デバッグの民", log);
-//       // sendNotificationToBroweser(log);
-//     }
-//   }
-// );
+chrome.runtime.onMessage.addListener(
+  async function (message, sender, callback) {
+    // console.log("debug log");
+    if (message.type == 'DEBUG_TEST') {
+      const purchaseOrders = await downloadPurchaseOrders();
+      console.table(purchaseOrders?.[0]);
+      const log = purchaseOrders && await generateLog(purchaseOrders, 0);
+      console.log(log ?? "error");
+      sendNotificationToDiscord("デバッグの民です", log ?? "error");
+    }
+  }
+);
 
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
@@ -102,8 +103,31 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 
 // これまでの総売上を計算/
-function getSumOfOrderAmount(orders: PurchaseOrder[]) {
+function getOrderAmount(orders: PurchaseOrder[]) {
   const sum = orders.reduce((p, x) => p + (Number.isNaN(x.AmountCharged) ? 0 : x.AmountCharged), 0);
+  return sum;
+}
+
+// これまでの総売上を計算/
+function getCurrentMonthlyOrderAmount(orders: PurchaseOrder[]) {
+  const currentMonth = moment(new Date()).format("yyyy/MM");
+  const monthlyOrders = orders.filter(order => {
+    const orderMonth = moment(order.OrderCreationDate).format("yyyy/MM");
+    return currentMonth === orderMonth;
+  });
+  const itemNames = [...new Set(monthlyOrders.map(order => order.ItemName))];
+  console.table(itemNames);
+  const sum = itemNames.map(itemname => {
+    const itemMonthlyOrders = monthlyOrders.filter(order => order.ItemName == itemname);
+    return {
+      itemName: itemname,
+      orderAmount: itemMonthlyOrders.reduce((p, x) => p + (Number.isNaN(x.AmountCharged) ? 0 : x.AmountCharged), 0)
+    };
+  })
+  sum.unshift({
+    itemName: "合計",
+    orderAmount: monthlyOrders.reduce((p, x) => p + (Number.isNaN(x.AmountCharged) ? 0 : x.AmountCharged), 0)
+  })
   return sum;
 }
 
@@ -116,7 +140,7 @@ function searchPastOrders(order: PurchaseOrder, orders: PurchaseOrder[]) {
 }
 
 function insertStr(input: string) {
-  return "〒" + input.slice(0, 3) + '-' + input.slice(3, input.length);
+  return ("〒" + input.slice(0, 3) + '-' + input.slice(3, input.length)).replace("--", "-");
 }
 
 
@@ -125,12 +149,22 @@ async function generateLog(orders: PurchaseOrder[], index: number = 0) {
   const order = orders[index];
   const address = await getAdress(order.BuyerPostalCode);
   const date = moment(order.OrderCreationDate).format('YYYY/MM/DD HH:mm');
-  const sumOfOrderAmnount = getSumOfOrderAmount(orders);
+  const orderAmnount = getOrderAmount(orders);
   const paseOrders = searchPastOrders(order, orders);
   const postalCode = insertStr(order.BuyerPostalCode)
-  return `
-    ${order.ItemName}\n注文日時　:  ${date}\n売上　　　:  ¥${order.OrderAmount}\n総売上　　:  ¥${sumOfOrderAmnount}\n郵便番号　:  ${postalCode}\n住所　　　:  ${address}\n購入履歴　:  ${paseOrders.length}ヶ月継続
-    `
+  const currentMonthlyOrderAmount = getCurrentMonthlyOrderAmount(orders);
+  const currentMonthlyOrderAmountStr = currentMonthlyOrderAmount.map(order => `${order.itemName?.replace("🐾", "")} : ¥${order.orderAmount} `).join(", ");
+
+  return `\
+${order.ItemName}\n\
+注文日時　:  ${date}\n\
+売上　　　:  ¥${order.OrderAmount}\n\
+総売上　　:  ¥${orderAmnount}\n\
+今月売上　:  ${currentMonthlyOrderAmountStr}\n\
+郵便番号　:  ${postalCode}\n\
+住所　　　:  ${address}\n\
+購入履歴　:  ${paseOrders.length}ヶ月継続\
+`
 }
 
 

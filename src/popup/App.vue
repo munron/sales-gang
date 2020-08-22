@@ -36,7 +36,7 @@
       </p>
     </div>
     <button class="apply" @click="apply">設定反映</button>
-    <!--<button class="apply" @click="debug">デバッグ</button>-->
+    <button class="apply" @click="debug">テスト</button>
   </div>
 </template>
 
@@ -97,7 +97,7 @@ export default class App extends Vue {
   }
 
   public async debug() {
-    chrome.runtime.sendMessage({ type: "DOWNLOAD_PURCHASE_ORDER" });
+    chrome.runtime.sendMessage({ type: "DEBUG_TEST" });
   }
 
   // 通知をchromeに送信する
